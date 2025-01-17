@@ -2,6 +2,8 @@ using AEVWebClient.Client.Pages;
 using AEVWebClient.Components;
 using AEVWebClient.Components.Account;
 using AEVWebClient.Data;
+using AEVWebClient.Models; // Added for FolderMonitorSettings
+using AEVWebClient.Services; // Added for FolderMonitorService
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +21,10 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -36,6 +38,13 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Register FolderMonitorSettings from appsettings.json
+builder.Services.Configure<FolderMonitorSettings>(
+    builder.Configuration.GetSection("FolderMonitorSettings"));
+
+// Register the FolderMonitorService as a hosted service
+builder.Services.AddHostedService<FolderMonitorService>();
 
 var app = builder.Build();
 
